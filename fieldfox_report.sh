@@ -88,11 +88,9 @@ function generatereport() {
     ilplot=$(echo $reportinfo | awk -F'|' '{print $9}')
 
     if [ "$newrep" = true ]; then
-        echo "salvo i dati"
         echo "$internalpn,$customer,$customerpn,$startf,$stopf,$illimit,$rllimit,$ilplot" >> config.csv
     fi
 
-    echo "generate report!"
     percent=$(echo "100 / $counter" | bc )
     gauge=$percent
 
@@ -134,13 +132,11 @@ function inforeport {
     reportdir=$(echo $reportdata |awk -F "|" '{print $3}')
 
     if [ -z "$reportdir" ]; then
-        echo "No data dir"
         show_error
         exit 1
     fi
 
     if [ -z "$datadir" ]; then
-        echo "No data dir"
         show_error
         exit 1
     else
@@ -158,9 +154,7 @@ function inforeport {
         rllimit="-20.82"
         ilplot="-10"
         newrep=true
-    else
-        echo "Load report"
-        
+    else        
         reportconfig=$(cat config.csv | grep $internalpn)
         customer=$(echo $reportconfig | awk -F',' '{print $2}')
         customerpn=$(echo $reportconfig | awk -F',' '{print $3}')
