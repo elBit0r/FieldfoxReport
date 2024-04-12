@@ -9,7 +9,7 @@ configparam=$(tail -n +3 config.csv | cut -d ',' -f 1 | tr '\n' '!' | sed 's/.$/
 function show_error() {
     yad --title="Error!" \
         --image=dialog-error \
-        --text="Si è verificato un errore." \
+        --text="Si è verificato un errore. \n $1" \
         --button=gtk-ok:0
 }
 
@@ -88,10 +88,14 @@ function generatereport() {
     ilplot=$(echo $reportinfo | awk -F'|' '{print $9}')
 
     if [ "$newrep" = true ]; then
-        echo "$internalpn,$customer,$customerpn,$startf,$stopf,$illimit,$rllimit,$ilplot" >> config.csv
+        echo "Save report config"
+        il_limit=$(echo "$illimit" | sed 's/,/./')
+        rl_limit=$(echo "$rllimit" | sed 's/,/./')
+        echo "$internalpn,$customer,$customerpn,$startf,$stopf,$il_limit,$rl_limit,$ilplot" >> config.csv
     fi
 
-    percent=$(echo "100 / $counter" | bc )
+    echo "generate report!"
+    percent=$(echo "100 / $filecount" | bc )
     gauge=$percent
 
     #gor any sing csv file do...
@@ -132,16 +136,15 @@ function inforeport {
     reportdir=$(echo $reportdata |awk -F "|" '{print $3}')
 
     if [ -z "$reportdir" ]; then
-        show_error
+        show_error "Select Source report directory"
         exit 1
     fi
 
     if [ -z "$datadir" ]; then
-        show_error
+        show_error "Select Destination Folder"
         exit 1
     else
-        counter=$(find $datadir -type f -name "*.csv" | grep -c "")
-        echo $counter
+        filecount=$(find $datadir -type f -name "*.csv" | grep -c "")
     fi
    
     if [[ $internalpn == *"NEW REPORT"* ]]; then
@@ -154,7 +157,9 @@ function inforeport {
         rllimit="-20.82"
         ilplot="-10"
         newrep=true
-    else        
+    else
+        echo "Load report"
+        
         reportconfig=$(cat config.csv | grep $internalpn)
         customer=$(echo $reportconfig | awk -F',' '{print $2}')
         customerpn=$(echo $reportconfig | awk -F',' '{print $3}')
@@ -166,10 +171,9 @@ function inforeport {
         newrep=false
     fi
 
-    echo $reportconfig
-    
+     
     reportinfo=$(yad --title="$wtitle" --center \
-                --text="<span foreground='blue'><b><big><big>Found N°: $counter data files\n\nReport Config:</big></big></b></span>" \
+                --text="<span foreground='blue'><b><big><big>Found N°: $filecount data files\n\nReport Config:</big></big></b></span>" \
 				--image=info \
 				--form \
                 --columns=2 \
@@ -210,7 +214,7 @@ function main {
 				ret=$?
 		
 	  case $ret in
-			0|10) echo "Salva" ; inforeport
+			0|10) echo "Save" ; inforeport
 			;;
 			99) yad --center --image=stop --info --no-buttons --timeout 2 --text "<span foreground='red'><b><big><big>Report Canceled</big></big></b></span>" ; exit
 			;;
